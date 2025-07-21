@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://mnijungkook.vercel.app/</loc>
+    <lastmod>2025-01-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://mnijungkook.vercel.app/logo.png</image:loc>
+      <image:caption>MNI Jungkook - BTS Jungkook Fan Site Logo</image:caption>
+      <image:title>MNI Jungkook Official Logo</image:title>
+    </image:image>
+    <video:video>
+      <video:thumbnail_loc>https://i.imgur.com/QarAvdR.png</video:thumbnail_loc>
+      <video:title>Jungkook - Standing Next To You</video:title>
+      <video:description>Official music video for Jungkook's Standing Next To You</video:description>
+      <video:player_loc allow_embed="yes">https://www.youtube.com/embed/UNo0TG9LwwI</video:player_loc>
+      <video:duration>180</video:duration>
+      <video:rating>5.0</video:rating>
+      <video:view_count>1000000</video:view_count>
+      <video:publication_date>2025-01-20</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+      <video:tag>jungkook</video:tag>
+      <video:tag>bts</video:tag>
+      <video:tag>kpop</video:tag>
+      <video:tag>standing next to you</video:tag>
+      <video:category>Music</video:category>
+    </video:video>
+  </url>
+
+</urlset> 

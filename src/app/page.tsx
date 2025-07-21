@@ -40,9 +40,11 @@ export default function Home() {
   const previousTabData = tabs.find(tab => tab.id === previousTab) || tabs[0];
 
   return (
-    <div className="relative bg-[#F2F5F5] w-screen flex items-center justify-center m-0 p-0">
+    <main className="relative bg-[#F2F5F5] w-screen flex items-center justify-center m-0 p-0">
       <Topbar />
-      <div className="fixed max-h-screen aspect-[1] w-screen z-20 top-0">
+      
+      {/* Hero Section */}
+      <header className="fixed max-h-screen aspect-[1] w-screen z-20 top-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
           <motion.div 
             className="w-[50vw] sm:w-[30vw] aspect-[3/2] bg-[#014131] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.1)]"
@@ -76,10 +78,10 @@ export default function Home() {
               delay: 0.1
             }}
           >
-            <img src="https://i.imgur.com/Ki1RqDD.png" alt="logo" className="w-full h-full p-10 object-cover" />
+            <img src="https://i.imgur.com/Ki1RqDD.png" alt="MNI Jungkook Official Logo - BTS Golden Maknae" className="w-full h-full p-10 object-cover" />
           </motion.div>
         </div>
-      </div>
+      </header>
         
       <motion.div
         className="fixed max-h-screen aspect-[1] w-screen bottom-0 left-0 inset-0 z-[1]"
@@ -98,6 +100,8 @@ export default function Home() {
           Jungkook
         </h1>
       </motion.div>
+      
+      {/* Main Content */}
       <div className="relative h-full w-screen z-20">
         <div className="relative max-h-screen aspect-[1] w-screen z-20"/>
 
@@ -105,11 +109,12 @@ export default function Home() {
         </div>
         
         <div className="relative w-screen z-20 bg-[#D7DEDC]">
-
-          <div className="relative flex items-center justify-center mb-8 -mt-1">
+          {/* Shop Section */}
+          <section className="relative flex items-center justify-center mb-8 -mt-1">
             <div id="shop-section" className="absolute -top-24 left-0"></div>
-            <img src="/shop.png" alt="logo" className="w-auto h-12 mt-4" />
-          </div>
+            <h2 className="sr-only">Jungkook Official Merchandise Shop</h2>
+            <img src="/shop.png" alt="Jungkook Official Shop - BTS Merchandise" className="w-auto h-12 mt-4" />
+          </section>
 
           <div className="max-w-[800px] mx-auto p-8">
             <div className="relative bg-white flex rounded-lg p-10 items-center justify-center underline">
@@ -117,217 +122,211 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 3x3 Grid of Red Squares */}
-          {/* <div className="grid grid-cols-3 gap-4 p-8 max-w-[800px] mx-auto">
-            {[...Array(9)].map((_, index) => (
-              <div 
-                key={index}
-                className="w-full h-auto rounded-lg"
-              >
-                <img src="https://i.imgur.com/ysAnZe7.png" alt="logo" className="w-full h-full object-cover" />
-              </div>
-            ))}
-          </div> */}
-
-          <div className="relative flex items-center justify-center my-8">
+          {/* Music Section */}
+          <section className="relative flex items-center justify-center my-8">
             <div id="music-section" className="absolute -top-24 left-0"></div>
-            <img src="/music.png" alt="logo" className="w-auto h-12" />
-          </div>
+            <h2 className="sr-only">Jungkook Music Videos and Songs</h2>
+            <img src="/music.png" alt="Jungkook Music - Latest Songs and Albums" className="w-auto h-12" />
+          </section>
 
           <div className="max-w-[800px] mx-auto py-8">
-              <div className="flex items-center justify-start grid">
-                {tabs.map((tab, index) => (
-                <motion.button
-                  key={tab.id}
-                  className={`${tab.active ? 'underline' : ''} relative px-6 py-2 rounded-xl font-marck-script font-semibold text-3xl text-black flex items-center gap-3`}
-                  onClick={() => {
-                    if (tab.id !== activeTab) {
-                      // Reset video and show overlay
-                      const iframe = document.getElementById('video-iframe') as HTMLIFrameElement;
-                      const overlay = document.getElementById('video-overlay');
-                      if (iframe && overlay) {
-                        iframe.style.opacity = '0';
-                        iframe.style.zIndex = '10';
-                        overlay.style.display = 'flex';
-                        overlay.style.opacity = '1';
-                        
-                        // Update iframe src to new video after a short delay
-                        setTimeout(() => {
-                          const newTabData = tabs.find(t => t.id === tab.id);
-                          if (newTabData) {
-                            iframe.src = `https://www.youtube.com/embed/${newTabData.url}?enablejsapi=1&rel=0`;
-                          }
-                        }, 100);
-                      }
-                      
-                      setPreviousTab(activeTab);
-                      console.log("Set transiton")
-                      setIsTransitioning(true);
-                      
-                      // Update active tab after a brief delay to ensure previous tab is set
-                      setTimeout(() => {
-                        setActiveTab(tab.id);
-                      }, 50);
-                      
-                      // Reset transition state after animation completes
-                      setTimeout(() => {
-                        setIsTransitioning(false);
-                      }, 850);
-                    }
-                  }}
-                  whileHover="hover"
-                  initial="initial"
-                >
-                  <span>{tab.label}</span>
-                  <motion.div
-                    className="flex items-center justify-center"
-                    variants={{
-                      initial: { 
-                        x: -20, 
-                        opacity: 0,
-                        overflow: 'hidden'
-                      },
-                      hover: { 
-                        x: 0, 
-                        opacity: 1,
-                        width: 'auto',
-                        transition: {
-                          duration: 0.3,
-                          ease: "easeOut"
-                        }
-                      }
-                    }}
-                  >
-                    <PlayIcon size={20}/>
-                  </motion.div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          {/* YouTube Video Embed with Overlay */}
-          <div className="w-full max-w-[800px] mx-auto px-4 pb-8">
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              {!isTransitioning && (
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full rounded-lg z-10 opacity-0"
-                  src={`https://www.youtube.com/embed/${activeTabData.url}?enablejsapi=1&rel=0`}
-                  title="Jungkook - Standing Next to You"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  id="video-iframe"
-                ></iframe>
-              )}
-              
-              {/* Video Overlay */}
-              <motion.div 
-                className="absolute z-50 top-0 left-0 w-full h-full bg-black rounded-lg cursor-pointer flex items-center justify-center"
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.1 }}
-                id="video-overlay"
+            <nav className="flex items-center justify-start grid" aria-label="Jungkook Music Navigation">
+              {tabs.map((tab, index) => (
+              <motion.button
+                key={tab.id}
+                className={`${tab.active ? 'underline' : ''} relative px-6 py-2 rounded-xl font-marck-script font-semibold text-3xl text-black flex items-center gap-3`}
                 onClick={() => {
-                  const iframe = document.getElementById('video-iframe');
-                  const overlay = document.getElementById('video-overlay');
-                  if (iframe && overlay) {
-                    // Show iframe and make it visible
-                    iframe.style.opacity = '1';
-                    iframe.style.zIndex = '20';
-                    
-                    // Load YouTube iframe API if not already loaded
-                    if (!window.YT) {
-                      const tag = document.createElement('script');
-                      tag.src = 'https://www.youtube.com/iframe_api';
-                      const firstScriptTag = document.getElementsByTagName('script')[0];
-                      if (firstScriptTag.parentNode) {
-                        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                      }
+                  if (tab.id !== activeTab) {
+                    // Reset video and show overlay
+                    const iframe = document.getElementById('video-iframe') as HTMLIFrameElement;
+                    const overlay = document.getElementById('video-overlay');
+                    if (iframe && overlay) {
+                      iframe.style.opacity = '0';
+                      iframe.style.zIndex = '10';
+                      overlay.style.display = 'flex';
+                      overlay.style.opacity = '1';
+                      
+                      // Update iframe src to new video after a short delay
+                      setTimeout(() => {
+                        const newTabData = tabs.find(t => t.id === tab.id);
+                        if (newTabData) {
+                          iframe.src = `https://www.youtube.com/embed/${newTabData.url}?enablejsapi=1&rel=0`;
+                        }
+                      }, 100);
                     }
                     
-                    // Initialize player and play video
-                    window.onYouTubeIframeAPIReady = function() {
-                      const player = new window.YT.Player('video-iframe', {
-                        events: {
-                          'onReady': function(event: any) {
-                            event.target.playVideo();
-                          }
-                        }
-                      });
-                    };
+                    setPreviousTab(activeTab);
+                    console.log("Set transiton")
+                    setIsTransitioning(true);
                     
-                    // If API is already loaded, create player immediately
-                    if (window.YT && window.YT.Player) {
-                      const player = new window.YT.Player('video-iframe', {
-                        events: {
-                          'onReady': function(event: any) {
-                            event.target.playVideo();
-                          }
-                        }
-                      });
-                    }
-                    
-                    // Hide overlay with animation
+                    // Update active tab after a brief delay to ensure previous tab is set
                     setTimeout(() => {
-                      overlay.style.display = 'none';
-                    }, 100);
+                      setActiveTab(tab.id);
+                    }, 50);
+                    
+                    // Reset transition state after animation completes
+                    setTimeout(() => {
+                      setIsTransitioning(false);
+                    }, 850);
                   }
                 }}
+                whileHover="hover"
+                initial="initial"
+                aria-label={`Play ${tab.label} by Jungkook`}
               >
-                <div className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden">
-                  {/* Background Thumbnail (Previous) */}
+                <span>{tab.label}</span>
+                <motion.div
+                  className="flex items-center justify-center"
+                  variants={{
+                    initial: { 
+                      x: -20, 
+                      opacity: 0,
+                      overflow: 'hidden'
+                    },
+                    hover: { 
+                      x: 0, 
+                      opacity: 1,
+                      width: 'auto',
+                      transition: {
+                        duration: 0.3,
+                        ease: "easeOut"
+                      }
+                    }
+                  }}
+                >
+                  <PlayIcon size={20}/>
+                </motion.div>
+              </motion.button>
+            ))}
+          </nav>
+        </div>
+
+        {/* YouTube Video Embed with Overlay */}
+        <div className="w-full max-w-[800px] mx-auto px-4 pb-8">
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            {!isTransitioning && (
+              <iframe
+                className="absolute top-0 left-0 w-full h-full rounded-lg z-10 opacity-0"
+                src={`https://www.youtube.com/embed/${activeTabData.url}?enablejsapi=1&rel=0`}
+                title={`Jungkook - ${activeTabData.label} Official Music Video`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                id="video-iframe"
+              ></iframe>
+            )}
+            
+            {/* Video Overlay */}
+            <motion.div 
+              className="absolute z-50 top-0 left-0 w-full h-full bg-black rounded-lg cursor-pointer flex items-center justify-center"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.1 }}
+              id="video-overlay"
+              onClick={() => {
+                const iframe = document.getElementById('video-iframe');
+                const overlay = document.getElementById('video-overlay');
+                if (iframe && overlay) {
+                  // Show iframe and make it visible
+                  iframe.style.opacity = '1';
+                  iframe.style.zIndex = '20';
+                  
+                  // Load YouTube iframe API if not already loaded
+                  if (!window.YT) {
+                    const tag = document.createElement('script');
+                    tag.src = 'https://www.youtube.com/iframe_api';
+                    const firstScriptTag = document.getElementsByTagName('script')[0];
+                    if (firstScriptTag.parentNode) {
+                      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    }
+                  }
+                  
+                  // Initialize player and play video
+                  window.onYouTubeIframeAPIReady = function() {
+                    const player = new window.YT.Player('video-iframe', {
+                      events: {
+                        'onReady': function(event: any) {
+                          event.target.playVideo();
+                        }
+                      }
+                    });
+                  };
+                  
+                  // If API is already loaded, create player immediately
+                  if (window.YT && window.YT.Player) {
+                    const player = new window.YT.Player('video-iframe', {
+                      events: {
+                        'onReady': function(event: any) {
+                          event.target.playVideo();
+                        }
+                      }
+                    });
+                  }
+                  
+                  // Hide overlay with animation
+                  setTimeout(() => {
+                    overlay.style.display = 'none';
+                  }, 100);
+                }
+              }}
+              role="button"
+              aria-label={`Play ${activeTabData.label} by Jungkook`}
+              tabIndex={0}
+            >
+              <div className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden">
+                {/* Background Thumbnail (Previous) */}
+                <motion.div
+                  className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: isTransitioning ? 0 : 1 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                >
+                  <img 
+                    src={isTransitioning ? previousTabData.thumbnail : activeTabData.thumbnail}
+                    alt={`Jungkook ${isTransitioning ? previousTabData.label : activeTabData.label} Thumbnail`}
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+                
+                {/* Foreground Thumbnail (Current) */}
+                {isTransitioning && (
                   <motion.div
                     className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: isTransitioning ? 0 : 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isTransitioning ? 1 : 0 }}
                     transition={{ duration: 0.8, ease: "easeInOut" }}
                   >
                     <img 
-                      src={isTransitioning ? previousTabData.thumbnail : activeTabData.thumbnail}
-                      alt="Background Thumbnail" 
+                      src={isTransitioning ? activeTabData.thumbnail : previousTabData.thumbnail}
+                      alt={`Jungkook ${isTransitioning ? activeTabData.label : previousTabData.label} Thumbnail`}
                       className="w-full h-full object-cover"
                     />
                   </motion.div>
-                  
-                  {/* Foreground Thumbnail (Current) */}
-                  {isTransitioning && (
-                    <motion.div
-                      className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: isTransitioning ? 1 : 0 }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                    >
-                      <img 
-                        src={isTransitioning ? activeTabData.thumbnail : previousTabData.thumbnail}
-                        alt="Foreground Thumbnail" 
-                        className="w-full h-full object-cover"
-                      />
-                    </motion.div>
-                  )}
-                  {!isTransitioning && (
-                    <motion.div
-                      className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                    >
-                      <img 
-                        src={activeTabData.thumbnail}
-                        alt="Foreground Thumbnail" 
-                        className="w-full h-full object-cover"
-                      />
-                    </motion.div>
-                  )}
-                </div>
-                {/* Overlay and Play Icon - Static */}
-                <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg"></div>
-                <div className="relative z-10 bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4 hover:bg-opacity-30 transition-all duration-200">
-                  <PlayIcon size={28}/>
-                </div>
-              </motion.div>
-            </div>
+                )}
+                {!isTransitioning && (
+                  <motion.div
+                    className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                  >
+                    <img 
+                      src={activeTabData.thumbnail}
+                      alt={`Jungkook ${activeTabData.label} Music Video Thumbnail`}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                )}
+              </div>
+              {/* Overlay and Play Icon - Static */}
+              <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg"></div>
+              <div className="relative z-10 bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4 hover:bg-opacity-30 transition-all duration-200">
+                <PlayIcon size={28}/>
+              </div>
+            </motion.div>
           </div>
+        </div>
         </div>
         <Footer />
       </div>
-    </div>
+    </main>
   );
 }
