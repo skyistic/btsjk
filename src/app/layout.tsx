@@ -14,7 +14,7 @@ const marckScript = Marck_Script({
 });
 
 export const metadata: Metadata = {
-  title: "MNI Jungkook | Official Jungkook Fan Site | BTS Golden Maknae",
+  title: "Unofficial Jungkook Fan Site | BTS Golden Maknae",
   description: "MNI Jungkook - Your ultimate destination for Jungkook content. Discover exclusive music, videos, and updates from BTS' Golden Maknae. From '3D' to 'Standing Next to You', explore Jungkook's solo journey.",
   keywords: [
     "mnijungkook",
