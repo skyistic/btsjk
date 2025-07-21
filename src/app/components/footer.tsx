@@ -92,7 +92,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="text-center md:text-right order-1 md:order-2">
           <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
-            COPYRIGHT © 2025 BIG HIT MUSIC / HYBE. ALL RIGHTS RESERVED.
+            COPYRIGHT © btsjk. ALL RIGHTS RESERVED.
             <br className="hidden sm:block"/>
             <span className="block sm:inline sm:ml-1">This fan blog is unofficial and has no affiliation with HYBE or its official channels.</span>
           </p>
