@@ -1,7 +1,7 @@
 "use client";
 import styles from "./page.module.css";
 import { motion, useScroll, useTransform, AnimatePresence, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import FluidImage from "./components/FluidImage";
 
 type ImageGridLayout = 'right' | 'left' | 'bottom' | 'top' | 'columns' | 'rows';
@@ -20,15 +20,30 @@ function LazyFluidImage({
   cursorRadius?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const hasBeenSeenRef = useRef(false);
+  const [shouldRender, setShouldRender] = useState(false);
   const isInView = useInView(ref, { 
-    once: false, // Keep checking (not just once)
-    margin: "100px" // Start loading slightly before it's visible
+    once: false,
+    margin: "200px" // Larger margin for earlier loading
   });
+
+  // Once seen, keep the FluidImage mounted to avoid re-initialization issues
+  React.useEffect(() => {
+    if (isInView && !hasBeenSeenRef.current) {
+      hasBeenSeenRef.current = true;
+      setShouldRender(true);
+    }
+  }, [isInView]);
 
   return (
     <div ref={ref} className={className}>
-      {isInView ? (
-        <motion.div className="w-full h-full" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
+      {shouldRender ? (
+        <motion.div 
+          className="w-full h-full" 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
           <FluidImage 
             src={src} 
             alt={alt} 
@@ -38,9 +53,8 @@ function LazyFluidImage({
           />
         </motion.div>
       ) : (
-        <div 
-          className="w-full h-full object-cover"
-        />
+        // Placeholder - shows while waiting to enter view
+        <div className="w-full h-full bg-neutral-100" />
       )}
     </div>
   );
