@@ -1,332 +1,266 @@
 "use client";
 import styles from "./page.module.css";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import Topbar from "./components/topbar";
-import { Footer } from "./components/footer";
-import { useState } from "react";
+import { motion, useScroll, useTransform, AnimatePresence, useInView } from "framer-motion";
+import { useRef, useState } from "react";
+import FluidImage from "./components/FluidImage";
 
-// YouTube iframe API types
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
+type ImageGridLayout = 'right' | 'left' | 'bottom' | 'top' | 'columns' | 'rows';
+
+function LazyFluidImage({ 
+  src, 
+  alt, 
+  className, 
+  fluidIntensity = 0.004, 
+  cursorRadius = 0.003 
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+  fluidIntensity?: number;
+  cursorRadius?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { 
+    once: false, // Keep checking (not just once)
+    margin: "100px" // Start loading slightly before it's visible
+  });
+
+  return (
+    <div ref={ref} className={className}>
+      {isInView ? (
+        <motion.div className="w-full h-full" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
+          <FluidImage 
+            src={src} 
+            alt={alt} 
+            fluidIntensity={fluidIntensity} 
+            cursorRadius={cursorRadius} 
+            className="w-full h-full" 
+          />
+        </motion.div>
+      ) : (
+        <div 
+          className="w-full h-full object-cover"
+        />
+      )}
+    </div>
+  );
 }
 
-function PlayIcon({ size }: { size: number }) {
+interface ImageGridProps {
+  images?: string[];
+  layout?: ImageGridLayout;
+  className?: string;
+  gap?: number;
+  fluidIntensity?: number;
+  cursorRadius?: number;
+  aspectRatio?: string;
+}
+
+function ImageGrid({
+  images = [],
+  layout = 'right',
+  className = '',
+  gap = 4,
+  aspectRatio = "1",
+  fluidIntensity = 0.004,
+  cursorRadius = 0.003,
+}: ImageGridProps) {
+  // Handle 'columns' layout - two images side by side
+  if (layout === 'columns' || layout === 'rows') {
+    return (
+      <div className={`${layout === 'rows' ? 'grid grid-cols-1 gap-${gap}' : 'flex flex-row'} w-full max-w-2xl gap-${gap} items-stretch justify-center`}>
+        {images.map((image, index) => (
+          <div key={index} className={`${className ? className : 'aspect-[${aspectRatio}]'} w-full flex items-center justify-center z-10`}>
+            <LazyFluidImage src={image} alt={`${layout}-${index + 1}`} fluidIntensity={fluidIntensity} cursorRadius={cursorRadius} className="w-full h-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Small images are everything after index 0 (main image)
+  const smallImageSrcs = images.slice(1);
+
+  const isHorizontal = layout === 'left' || layout === 'right';
+  const isReversed = layout === 'left' || layout === 'top';
+
+  // Main image component (images[0])
+  const MainImage = (
+    <div className={`${isHorizontal ? 'w-full' : 'w-full'} aspect-[${aspectRatio}] flex items-center justify-center z-10`}>
+      <LazyFluidImage src={images[0]} alt="main" fluidIntensity={0.0006} cursorRadius={0.0006} className="w-full h-full" />
+    </div>
+  );
+
+  // Small images component (images[1], images[2], ...)
+  const SmallImages = smallImageSrcs.length > 0 ? (
+    <div className={`flex ${isHorizontal ? 'flex-col w-1/3' : 'flex-row w-full'} gap-${gap}`}>
+      {smallImageSrcs.map((src, index) => (
+        <div 
+          key={index} 
+          className={`${isHorizontal ? 'w-full flex-1' : 'flex-1 aspect-square'} flex items-center justify-center z-10`}
+        >
+          <LazyFluidImage 
+            src={src} 
+            alt={`small-${index + 1}`} 
+            fluidIntensity={fluidIntensity} 
+            cursorRadius={cursorRadius} 
+            className="w-full h-full" 
+          />
+        </div>
+      ))}
+    </div>
+  ) : null;
+
+  // No small images - just show main image
+  if (smallImageSrcs.length === 0) {
+    return (
+      <div className={`w-full max-w-md ${className}`}>
+        {MainImage}
+      </div>
+    );
+  }
+
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"><g fill="none" fillRule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"></path><path fill="currentColor" d="M5.669 4.76a1.47 1.47 0 0 1 2.04-1.177c1.062.454 3.442 1.533 6.462 3.276c3.021 1.744 5.146 3.267 6.069 3.958c.788.591.79 1.763.001 2.356c-.914.687-3.013 2.19-6.07 3.956c-3.06 1.766-5.412 2.832-6.464 3.28c-.906.387-1.92-.2-2.038-1.177c-.138-1.142-.396-3.735-.396-7.237c0-3.5.257-6.092.396-7.235" strokeWidth={0.4} stroke="currentColor"></path></g></svg>  )
+    <div 
+      className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} ${isReversed ? (isHorizontal ? 'flex-row-reverse' : 'flex-col-reverse') : ''} w-full max-w-2xl gap-${gap} ${isHorizontal ? 'items-stretch' : 'items-center'} justify-center ${className}`}
+    >
+      {MainImage}
+      {SmallImages}
+    </div>
+  );
+}
+
+function Divider() {
+  return (
+    <div className="w-full flex flex-row gap-4 text-black items-center justify-center border-b border-black/10">
+    </div>
+  );
+}
+
+function SocialLinks() {
+  return (
+    <div className="w-full flex flex-row gap-4 text-black items-center justify-center border-b border-black/10 pb-4">
+      <a href="https://x.com/BTS_bighit" target="_blank" className="opacity-50">
+        <svg xmlns="http://www.w3.org/2000/svg" width={32} height={32} viewBox="0 0 24 24"><path fill="currentColor" fillRule="evenodd" d="M12 2c-2.716 0-3.056.012-4.123.06c-1.064.049-1.791.218-2.427.465a4.9 4.9 0 0 0-1.772 1.153A4.9 4.9 0 0 0 2.525 5.45c-.247.636-.416 1.363-.465 2.427C2.011 8.944 2 9.284 2 12s.011 3.056.06 4.123c.049 1.064.218 1.791.465 2.427a4.9 4.9 0 0 0 1.153 1.772a4.9 4.9 0 0 0 1.772 1.153c.636.247 1.363.416 2.427.465c1.067.048 1.407.06 4.123.06s3.056-.012 4.123-.06c1.064-.049 1.791-.218 2.427-.465a4.9 4.9 0 0 0 1.772-1.153a4.9 4.9 0 0 0 1.153-1.772c.247-.636.416-1.363.465-2.427c.048-1.067.06-1.407.06-4.123s-.012-3.056-.06-4.123c-.049-1.064-.218-1.791-.465-2.427a4.9 4.9 0 0 0-1.153-1.772a4.9 4.9 0 0 0-1.772-1.153c-.636-.247-1.363-.416-2.427-.465C15.056 2.012 14.716 2 12 2m0 1.802c2.67 0 2.986.01 4.04.058c.976.045 1.505.207 1.858.344c.466.182.8.399 1.15.748c.35.35.566.684.748 1.15c.136.353.3.882.344 1.857c.048 1.055.058 1.37.058 4.041c0 2.67-.01 2.986-.058 4.04c-.045.976-.208 1.505-.344 1.858a3.1 3.1 0 0 1-.748 1.15c-.35.35-.684.566-1.15.748c-.353.136-.882.3-1.857.344c-1.054.048-1.37.058-4.041.058c-2.67 0-2.987-.01-4.04-.058c-.976-.045-1.505-.208-1.858-.344a3.1 3.1 0 0 1-1.15-.748a3.1 3.1 0 0 1-.748-1.15c-.137-.353-.3-.882-.344-1.857c-.048-1.055-.058-1.37-.058-4.041c0-2.67.01-2.986.058-4.04c.045-.976.207-1.505.344-1.858c.182-.466.399-.8.748-1.15c.35-.35.684-.566 1.15-.748c.353-.137.882-.3 1.857-.344c1.055-.048 1.37-.058 4.041-.058m0 11.531a3.333 3.333 0 1 1 0-6.666a3.333 3.333 0 0 1 0 6.666m0-8.468a5.135 5.135 0 1 0 0 10.27a5.135 5.135 0 0 0 0-10.27m6.538-.203a1.2 1.2 0 1 1-2.4 0a1.2 1.2 0 0 1 2.4 0" strokeWidth={0.2} stroke="currentColor"></path></svg>      </a>
+      <a href="https://x.com/BTS_twt" target="_blank" className="opacity-50"> 
+        <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width={26} height={26} viewBox="0 0 497.000000 496.000000" preserveAspectRatio="xMidYMid meet">
+          <path d="M233.7 1.1C161.3 5 94.5 40.6 50.5 98.5c-28 36.9-43.9 77.7-49 125.5-4.7 43.5 3.6 90.2 23.3 131 6.3 13.1 14.3 26.5 18.4 30.7 7.8 8 22.7 9.8 32.4 3.8 6.5-4.1 11-10.1 12.5-17.1 1.8-8.2.2-14.5-6.8-26.3-39.8-66.6-35.3-151.9 11.4-214 7-9.4 23.4-26.4 32.8-34.1 26.7-21.9 59.9-36.4 94.8-41.5 14.2-2 40.3-2 54.2 0 26.7 4 51.5 13.2 75.7 28.2l8.8 5.4-5.6 6.2c-45.5 50.3-76.7 87.8-111 133.7-48.7 65-71.5 104.2-71.7 123.5-.2 9.6 1.8 12.6 13.6 20.4 5 3.4 11.7 8.2 14.8 10.7 7.8 6.3 11.7 6.7 20.7 2.4 12.7-6.2 35.7-31.6 67.9-75 36.3-49 76.2-108.4 106.4-158.7 5.6-9.2 10.2-16.9 10.4-17.1.7-.8 11.4 17.4 16.6 28.2 6.9 14.3 12.7 31.6 16 47.6 2.2 10.3 2.4 14 2.4 36-.1 22.7-.3 25.4-2.7 37-3.9 18.2-8.9 32.5-17.5 49.9-10.7 21.8-10.8 19.5 1 60.1 5.2 17.9 9.1 32.6 8.7 32.8-.5.2-14.3-3.6-30.7-8.5-23-6.7-31.5-8.8-37.3-9.1l-7.5-.3-15.6 8c-28.9 14.9-60.8 23.1-90 23.1-3.1 0-7.5.7-9.9 1.5-18.6 6.6-23.6 31.7-8.9 44.9 6.7 6.1 9.8 7 24.1 6.9 32.8-.3 68.5-8.6 98.5-22.8l12.2-5.7 49.3 14.3c30.9 8.9 51.6 14.4 55.5 14.7 14.9 1.1 27.8-11.2 27.7-26.3-.1-4.7-3.3-17.2-14.8-56.5L467 361.6l4.4-10.1c16.9-37.8 23.4-70.3 22.3-110.9-1-38.2-8.3-67.6-25.2-102.1-8-16.3-18.7-33.2-29-45.5-3.6-4.4-6.5-8.4-6.5-9s1.6-4.2 3.5-8.1c5.5-10.9 12.4-28.3 14.6-36.7 4.8-19 .3-24.1-14.8-16.6-6.3 3-21.7 14.4-31.7 23.2l-6.8 6.1-5.7-4C368.6 30.8 340.4 17.2 313 9.7c-25.9-7.1-52.5-10-79.3-8.6"></path>
+          <path d="M232.3 88c-17.6 7-25.6 27.7-17.3 44.6 6.1 12.4 17.3 19 31 18.2 12.5-.8 23.1-8.1 28.3-19.6 3.3-7.3 3-19-.5-26.3-5.8-11.7-15.2-17.9-28.3-18.5-6.4-.4-9 0-13.2 1.6M136.7 142.1c-22.5 5.3-32.5 33.1-18.4 51.5a32.45 32.45 0 0 0 39.2 10c7.1-3.2 11.6-7.5 15.6-14.8 3.1-5.8 3.4-7 3.4-14.8-.1-7.3-.5-9.3-2.9-14-4.8-9.6-11.3-14.9-21.3-17.5-6.3-1.7-9.9-1.7-15.6-.4M117.5 254.3c-9.4 3.1-16.6 9.2-20.6 17.5-2 3.9-2.4 6.3-2.4 14.2 0 8 .4 10.2 2.3 13.8 3.6 6.7 8.8 11.9 15.4 15.2 5.3 2.6 7.2 3 14.3 3s9-.4 14.3-3c6.9-3.5 12.5-9.2 15.6-15.9 1.6-3.6 2.1-6.5 2.1-13.6 0-7.9-.4-9.7-2.7-14.2-5.7-10.7-15.5-17.1-27.4-17.8-4.3-.3-8.4 0-10.9.8M134.5 384c-12.4 2.5-26.4 11.2-34.8 21.5-2.7 3.3-6.6 9.8-8.8 14.5-7.7 16.5-9.5 19.4-15.4 25.4-3.3 3.4-12.2 10.1-19.8 15.1-7.5 4.9-13.7 9.3-13.7 9.7 0 2.3 33.5 13.1 51.7 16.8 33.4 6.7 60.9 5.7 77.7-2.7 16.2-8.1 25.8-21.5 28.7-40.3 5.3-34.5-30.3-67.1-65.6-60"></path>
+        </svg>
+      </a>
+    </div>
+  );
+}
+
+function RoundedCornerContainerAnimation({ children, className }: { children: React.ReactNode, className: string }) {
+  const { scrollY } = useScroll();
+  
+  // Interpolate border-radius from 100px (at 0 scroll) to 0px (at 100vh scroll)
+  // Using a function to dynamically get window.innerHeight
+  const borderRadius = useTransform(scrollY, (value) => {
+    if (typeof window === 'undefined') return 100;
+    const vh = window.innerHeight;
+    const progress = Math.min(value / vh, 1); // 0 to 1 over 100vh
+    return 100 - (progress * 100); // 100px to 0px
+  });
+  
+  return (
+    <motion.div
+      className={`${className} overflow-hidden`}
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      style={{ 
+        borderTopLeftRadius: borderRadius,
+        borderTopRightRadius: borderRadius,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 export default function Home() {
-  const { scrollYProgress } = useScroll();
-  const x = useTransform(scrollYProgress, [0, 1], [-10, -1400]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, 0]);
-  const rotateX = useTransform(scrollYProgress, [0, 1], [0, -110]);
-  const rotateY = useTransform(scrollYProgress, [0, 1], [0, -230]);
-  const rotateZ = useTransform(scrollYProgress, [0, 1], [10, -20]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.5]);
-  const [activeTab, setActiveTab] = useState('3d');
-  const [previousTab, setPreviousTab] = useState('3d');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  const tabs = [
-    { id: '3d', label: '3D', active: activeTab === '3d', url: 'mHNCM-YALSA', thumbnail: 'https://www.udiscovermusic.com/wp-content/uploads/2023/09/bts-jung-kook-3d-video.jpg' },
-    { id: 'song', label: 'Standing Next To You', active: activeTab === 'song', url: 'UNo0TG9LwwI', thumbnail: 'https://i.imgur.com/QarAvdR.png' },
-    { id: 'hate', label: 'Hate You', active: activeTab === 'hate', url: 'tAcKfnf0zv4', thumbnail: 'https://i.imgur.com/z2yJY4F.png' }
-  ];
-  
-  const activeTabData = tabs.find(tab => tab.id === activeTab) || tabs[0];
-  const previousTabData = tabs.find(tab => tab.id === previousTab) || tabs[0];
-
   return (
-    <main className="relative bg-[#F2F5F5] w-screen flex items-center justify-center m-0 p-0">
-      <Topbar />
-      
-      {/* Hero Section */}
-      <header className="fixed max-h-screen aspect-[1] w-screen z-20 top-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <motion.div 
-            className="w-[50vw] sm:w-[30vw] aspect-[3/2] bg-[#014131] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.1)]"
-            style={{ 
-              transformStyle: "preserve-3d",
-              perspective: "1000px",
-              rotateX,
-              rotateY,
-              rotateZ,
-              scale
-            }}
-            initial={{ 
-              rotateY: 110,
-              rotateX: -30,
-              rotateZ: 0,
-              scale: 0.3,
-              opacity: 0,
-              z: -200
-            }}
-            animate={{ 
-              rotateY: 0,
-              rotateX: 0,
-              rotateZ: 10,
-              scale: 1,
-              opacity: 1,
-              z: 0
-            }}
-            transition={{ 
-              duration: 1, 
-              ease: [0.34, 1.1, 0.64, 1],
-              delay: 0.1
-            }}
-          >
-            <img src="https://i.imgur.com/Ki1RqDD.png" alt="MNI Jungkook Official Logo - BTS Golden Maknae" className="w-full h-full p-10 object-cover" />
-          </motion.div>
+    <div style={{ scrollbarWidth: 'none' }} className="bg-white flex flex-col items-center justify-center min-h-screen scrollbar-hide">
+      <div className="fixed w-screen h-[100vh]">
+        {/* Tiling background pattern */}
+        <div 
+          className="fixed inset-0 w-full h-full opacity-10"
+          style={{
+            backgroundImage: 'url(https://i.ibb.co/jv0KYnvj/image.png)',
+            backgroundRepeat: 'repeat',
+            backgroundSize: '300px auto',
+          }}
+        />
+        <div className="fixed bottom-0 left-0 w-[40vw] translate-x-1/2 ml-[10vw] aspect-[4/5]">
+          <FluidImage src="https://i.ibb.co/ymyTB1Ft/2022-b2.png" alt="logo" fluidIntensity={0.0002} cursorRadius={0.001} className="w-full h-full" />
         </div>
-      </header>
-        
-      <motion.div
-        className="fixed max-h-screen aspect-[1] w-screen bottom-0 left-0 inset-0 z-[1]"
-        initial={{ x: "100vw" }}
-        animate={{ x: -10 }}
-        style={{ x, y }}
-        transition={{ 
-          duration: 0.8, 
-          ease: [0,.82,.15,1],
-          delay: 0.2
-        }}
-      >
-        <h1 
-          className={`${styles.jungkookText} absolute bottom-14 left-0`}
-        >
-          Jungkook
-        </h1>
-      </motion.div>
-      
-      {/* Main Content */}
-      <div className="relative h-full w-screen z-20">
-        <div className="relative max-h-screen aspect-[1] w-screen z-20"/>
-
-        <div className="sticky z-50 top-0 h-16 w-screen bg-[#D7DEDC] opacity-100">
-        </div>
-        
-        <div className="relative w-screen z-20 bg-[#D7DEDC]">
-          {/* Shop Section */}
-          <section className="relative flex items-center justify-center mb-8 -mt-1">
-            <div id="shop-section" className="absolute -top-24 left-0"></div>
-            <h2 className="sr-only">Jungkook Official Merchandise Shop</h2>
-            <img src="/shop.png" alt="Jungkook Official Shop - BTS Merchandise" className="w-auto h-12 mt-4" />
-          </section>
-
-          <div className="max-w-[800px] mx-auto p-8">
-            <div className="relative bg-white flex rounded-lg p-10 items-center justify-center underline">
-              <span className="text-black text-2xl font-bold">Coming Soon</span>
-            </div>
-          </div>
-
-          {/* Music Section */}
-          <section className="relative flex items-center justify-center my-8">
-            <div id="music-section" className="absolute -top-24 left-0"></div>
-            <h2 className="sr-only">Jungkook Music Videos and Songs</h2>
-            <img src="/music.png" alt="Jungkook Music - Latest Songs and Albums" className="w-auto h-12" />
-          </section>
-
-          <div className="max-w-[800px] mx-auto py-8">
-            <nav className="flex items-center justify-start grid" aria-label="Jungkook Music Navigation">
-              {tabs.map((tab, index) => (
-              <motion.button
-                key={tab.id}
-                className={`${tab.active ? 'underline' : ''} relative px-6 py-2 rounded-xl font-marck-script font-semibold text-3xl text-black flex items-center gap-3`}
-                onClick={() => {
-                  if (tab.id !== activeTab) {
-                    // Reset video and show overlay
-                    const iframe = document.getElementById('video-iframe') as HTMLIFrameElement;
-                    const overlay = document.getElementById('video-overlay');
-                    if (iframe && overlay) {
-                      iframe.style.opacity = '0';
-                      iframe.style.zIndex = '10';
-                      overlay.style.display = 'flex';
-                      overlay.style.opacity = '1';
-                      
-                      // Update iframe src to new video after a short delay
-                      setTimeout(() => {
-                        const newTabData = tabs.find(t => t.id === tab.id);
-                        if (newTabData) {
-                          iframe.src = `https://www.youtube.com/embed/${newTabData.url}?enablejsapi=1&rel=0`;
-                        }
-                      }, 100);
-                    }
-                    
-                    setPreviousTab(activeTab);
-                    console.log("Set transiton")
-                    setIsTransitioning(true);
-                    
-                    // Update active tab after a brief delay to ensure previous tab is set
-                    setTimeout(() => {
-                      setActiveTab(tab.id);
-                    }, 50);
-                    
-                    // Reset transition state after animation completes
-                    setTimeout(() => {
-                      setIsTransitioning(false);
-                    }, 850);
-                  }
-                }}
-                whileHover="hover"
-                initial="initial"
-                aria-label={`Play ${tab.label} by Jungkook`}
-              >
-                <span>{tab.label}</span>
-                <motion.div
-                  className="flex items-center justify-center"
-                  variants={{
-                    initial: { 
-                      x: -20, 
-                      opacity: 0,
-                      overflow: 'hidden'
-                    },
-                    hover: { 
-                      x: 0, 
-                      opacity: 1,
-                      width: 'auto',
-                      transition: {
-                        duration: 0.3,
-                        ease: "easeOut"
-                      }
-                    }
-                  }}
-                >
-                  <PlayIcon size={20}/>
-                </motion.div>
-              </motion.button>
-            ))}
-          </nav>
-        </div>
-
-        {/* YouTube Video Embed with Overlay */}
-        <div className="w-full max-w-[800px] mx-auto px-4 pb-8">
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-            {!isTransitioning && (
-              <iframe
-                className="absolute top-0 left-0 w-full h-full rounded-lg z-10 opacity-0"
-                src={`https://www.youtube.com/embed/${activeTabData.url}?enablejsapi=1&rel=0`}
-                title={`Jungkook - ${activeTabData.label} Official Music Video`}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                id="video-iframe"
-              ></iframe>
-            )}
-            
-            {/* Video Overlay */}
-            <motion.div 
-              className="absolute z-50 top-0 left-0 w-full h-full bg-black rounded-lg cursor-pointer flex items-center justify-center"
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.1 }}
-              id="video-overlay"
-              onClick={() => {
-                const iframe = document.getElementById('video-iframe');
-                const overlay = document.getElementById('video-overlay');
-                if (iframe && overlay) {
-                  // Show iframe and make it visible
-                  iframe.style.opacity = '1';
-                  iframe.style.zIndex = '20';
-                  
-                  // Load YouTube iframe API if not already loaded
-                  if (!window.YT) {
-                    const tag = document.createElement('script');
-                    tag.src = 'https://www.youtube.com/iframe_api';
-                    const firstScriptTag = document.getElementsByTagName('script')[0];
-                    if (firstScriptTag.parentNode) {
-                      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                    }
-                  }
-                  
-                  // Initialize player and play video
-                  window.onYouTubeIframeAPIReady = function() {
-                    const player = new window.YT.Player('video-iframe', {
-                      events: {
-                        'onReady': function(event: any) {
-                          event.target.playVideo();
-                        }
-                      }
-                    });
-                  };
-                  
-                  // If API is already loaded, create player immediately
-                  if (window.YT && window.YT.Player) {
-                    const player = new window.YT.Player('video-iframe', {
-                      events: {
-                        'onReady': function(event: any) {
-                          event.target.playVideo();
-                        }
-                      }
-                    });
-                  }
-                  
-                  // Hide overlay with animation
-                  setTimeout(() => {
-                    overlay.style.display = 'none';
-                  }, 100);
-                }
-              }}
-              role="button"
-              aria-label={`Play ${activeTabData.label} by Jungkook`}
-              tabIndex={0}
-            >
-              <div className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden">
-                {/* Background Thumbnail (Previous) */}
-                <motion.div
-                  className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: isTransitioning ? 0 : 1 }}
-                  transition={{ duration: 0.8, ease: "easeInOut" }}
-                >
-                  <img 
-                    src={isTransitioning ? previousTabData.thumbnail : activeTabData.thumbnail}
-                    alt={`Jungkook ${isTransitioning ? previousTabData.label : activeTabData.label} Thumbnail`}
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-                
-                {/* Foreground Thumbnail (Current) */}
-                {isTransitioning && (
-                  <motion.div
-                    className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: isTransitioning ? 1 : 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                  >
-                    <img 
-                      src={isTransitioning ? activeTabData.thumbnail : previousTabData.thumbnail}
-                      alt={`Jungkook ${isTransitioning ? activeTabData.label : previousTabData.label} Thumbnail`}
-                      className="w-full h-full object-cover"
-                    />
-                  </motion.div>
-                )}
-                {!isTransitioning && (
-                  <motion.div
-                    className="absolute top-0 left-0 w-full h-full rounded-lg overflow-hidden"
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                  >
-                    <img 
-                      src={activeTabData.thumbnail}
-                      alt={`Jungkook ${activeTabData.label} Music Video Thumbnail`}
-                      className="w-full h-full object-cover"
-                    />
-                  </motion.div>
-                )}
-              </div>
-              {/* Overlay and Play Icon - Static */}
-              <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg"></div>
-              <div className="relative z-10 bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4 hover:bg-opacity-30 transition-all duration-200">
-                <PlayIcon size={28}/>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-        </div>
-        <Footer />
       </div>
-    </main>
+      <RoundedCornerContainerAnimation className="p-10 mt-[100vh] w-full min-h-screen relative bottom-0 left-0 bg-white flex flex-col items-center justify-center gap-8">
+        {/* Layout: small images on right (default) */}
+        <ImageGrid 
+          images={["https://i.ibb.co/GvJ1zCkn/image.png"]}
+          layout="right"
+          aspectRatio="4/5"
+        />
+        <SocialLinks />
+        
+        {/* Layout: small images on left */}
+        <ImageGrid 
+          images={["https://i.ibb.co/fGpsTb2y/image.png", "https://i.ibb.co/gLDSj88V/image.png", "https://i.ibb.co/Q3fmfZVW/image.png", "https://i.ibb.co/qYsgYDLH/image.png", "https://i.ibb.co/9kRbw3jH/image.png",  "https://i.ibb.co/6RZDv3Lk/image.png"]}
+          layout="top"
+          aspectRatio="4/5"
+        />
+        <SocialLinks />
+        
+        {/* Layout: small images on left */}
+        <ImageGrid 
+          images={["https://i.ibb.co/0RRS22tw/image.png", "https://i.ibb.co/TDY356s6/image.png", "https://i.ibb.co/rGjpDVvG/image.png",  "https://i.ibb.co/G3V1g2wX/image.png"]}
+          layout="right"
+          aspectRatio="4/5"
+        />
+        <SocialLinks />
+        
+        {/* Layout: small images on left */}
+        <ImageGrid 
+          images={["https://i.ibb.co/ZpvfGd9q/image.png", "https://i.ibb.co/BVvd9JLk/image.png",  "https://i.ibb.co/ksGwY4Mk/image.png"]}
+          layout="left"
+          aspectRatio="1"
+        />
+        <SocialLinks />
+        
+        {/* Layout: small images on bottom */}
+        <ImageGrid 
+          images={["https://i.ibb.co/qMyMfwZs/image.png"]}
+          layout="bottom"
+          aspectRatio="4/5"
+        />
+        <SocialLinks />
+        
+        {/* Layout: small images on bottom */}
+        <ImageGrid 
+          images={["https://i.ibb.co/DDpfZ3Nr/image.png"]}
+          layout="bottom"
+          aspectRatio="1"
+        />
+        <Divider />
+        {/*         
+          <ImageGrid 
+            images={["https://i.ibb.co/8gjn3LHh/image.png", "https://i.ibb.co/k6g7L81S/image.png", "https://i.ibb.co/N65f7NBK/image.png"]}
+            layout="rows"
+            className="aspect-[5/1]"
+          />
+          <SocialLinks />
+        */}
+        {/* Layout: single image only (no small images) */}
+        <ImageGrid 
+          images={["https://i.ibb.co/9kpLGksK/image.png", "https://i.ibb.co/gMTxMvqL/image.png"]}
+          layout="columns"
+          className="aspect-[1]"
+        />
+        <SocialLinks />
+      </RoundedCornerContainerAnimation>
+    </div>
   );
 }
