@@ -347,7 +347,7 @@ export default function FluidImage({
     const ext = gl.getExtension("OES_texture_half_float");
     const extLinear = gl.getExtension("OES_texture_half_float_linear");
     
-    let halfFloatType = gl.UNSIGNED_BYTE;
+    let halfFloatType: GLenum = gl.UNSIGNED_BYTE;
     if (ext) {
       halfFloatType = ext.HALF_FLOAT_OES;
     }
