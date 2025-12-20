@@ -243,12 +243,18 @@ export default function FluidImage({
 
   const createShader = useCallback(
     (gl: WebGLRenderingContext, type: number, source: string) => {
+      // Check if context is lost before creating shader
+      if (gl.isContextLost()) return null;
+      
       const shader = gl.createShader(type);
       if (!shader) return null;
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error("Shader compile error:", gl.getShaderInfoLog(shader));
+        const info = gl.getShaderInfoLog(shader);
+        if (info) {
+          console.error("Shader compile error:", info);
+        }
         gl.deleteShader(shader);
         return null;
       }
@@ -330,6 +336,7 @@ export default function FluidImage({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Get a fresh WebGL context
     const gl = canvas.getContext("webgl", {
       alpha: true,
       premultipliedAlpha: false,
@@ -338,6 +345,11 @@ export default function FluidImage({
 
     if (!gl) {
       console.error("WebGL not supported");
+      return;
+    }
+
+    // Check if context is lost (edge case)
+    if (gl.isContextLost()) {
       return;
     }
 
@@ -459,6 +471,11 @@ export default function FluidImage({
 
     // Animation loop
     const update = () => {
+      // Stop if context is lost
+      if (gl.isContextLost()) {
+        return;
+      }
+      
       if (!imageLoadedRef.current) {
         animationRef.current = requestAnimationFrame(update);
         return;
@@ -657,6 +674,7 @@ export default function FluidImage({
       canvas.removeEventListener("mouseleave", handleLeave);
       canvas.removeEventListener("touchend", handleLeave);
       cancelAnimationFrame(animationRef.current);
+      glRef.current = null;
     };
   }, [src, fluidIntensity, cursorRadius, createProgram, createFBO, createDoubleFBO]);
 
