@@ -24,14 +24,17 @@ function LazyFluidImage({
   const [shouldRender, setShouldRender] = useState(false);
   const isInView = useInView(ref, { 
     once: false,
-    margin: "200px" // Larger margin for earlier loading
   });
 
   // Once seen, keep the FluidImage mounted to avoid re-initialization issues
   useEffect(() => {
-    if (isInView && !hasBeenSeenRef.current) {
+    if (isInView) {
       hasBeenSeenRef.current = true;
-      setShouldRender(true);
+      setTimeout(() => {
+        setShouldRender(true);
+      }, 100);
+    } else {
+      setShouldRender(false);
     }
   }, [isInView]);
 
@@ -40,8 +43,8 @@ function LazyFluidImage({
       {shouldRender ? (
         <motion.div 
           className="w-full h-full" 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+          initial={{ opacity: 0, scale: 0.9 }} 
+          animate={{ opacity: 1, scale: 1 }} 
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <FluidImage 
@@ -54,7 +57,7 @@ function LazyFluidImage({
         </motion.div>
       ) : (
         // Placeholder - shows while waiting to enter view
-        <div className="w-full h-full bg-neutral-100" />
+        <div className="w-full h-full bg-neutral-100 animate-pulse" />
       )}
     </div>
   );
