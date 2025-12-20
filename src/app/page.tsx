@@ -24,9 +24,9 @@ function LazyFluidImage({
   const [shouldRender, setShouldRender] = useState(false);
   const isInView = useInView(ref, { 
     once: false,
+    amount: 0.2,
   });
 
-  // Once seen, keep the FluidImage mounted to avoid re-initialization issues
   useEffect(() => {
     if (isInView) {
       hasBeenSeenRef.current = true;
@@ -52,7 +52,7 @@ function LazyFluidImage({
             alt={alt} 
             fluidIntensity={fluidIntensity} 
             cursorRadius={cursorRadius} 
-            className="w-full h-full bg-white" 
+            className="w-full h-full" 
           />
         </motion.div>
       ) : (
@@ -212,6 +212,42 @@ function RoundedCornerContainerAnimation({ children, className }: { children: Re
   );
 }
 
+function ParallaxSplash() {
+  const { scrollY } = useScroll();
+  // Move slower than scroll - 0.3 means it moves at 30% of scroll speed
+  const y = useTransform(scrollY, [0, 1000], [0, -80]);
+  return(
+    <motion.div className="fixed bottom-0 left-1/2 w-[40vw] translate-x-1/2 aspect-[4/5]" style={{ x: '-50%', y }}>
+      <FluidImage src="https://i.ibb.co/ymyTB1Ft/2022-b2.png" alt="logo" fluidIntensity={0.0002} cursorRadius={0.001} className="w-full h-full" />
+    </motion.div>
+  )
+}
+
+function ParallaxLogo() {
+  const { scrollY } = useScroll();
+  // Move slower than scroll - 0.3 means it moves at 30% of scroll speed
+  const y = useTransform(scrollY, [0, 1000], [0, -200]);
+  
+  return (
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+      className="fixed top-1/2 left-1/2 backdrop-blur-md h-[120px] w-[500px] bg-black/20 z-30 pointer-events-none"
+      style={{
+        x: '-50%',
+        y,
+        translateY: '-50%',
+        WebkitMaskImage: 'url(https://res.cloudinary.com/dfav0sv4d/image/upload/v1766253225/download_3_wb03yr.png)',
+        maskImage: 'url(https://res.cloudinary.com/dfav0sv4d/image/upload/v1766253225/download_3_wb03yr.png)',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        WebkitMaskSize: 'contain',
+      }}
+    />
+  );
+}
+
 export default function Home() {
   return (
     <div style={{ scrollbarWidth: 'none' }} className="bg-white flex flex-col items-center justify-center min-h-screen scrollbar-hide">
@@ -225,20 +261,19 @@ export default function Home() {
             backgroundSize: '300px auto',
           }}
         />
-        <div className="fixed bottom-0 left-0 w-[40vw] translate-x-1/2 ml-[10vw] aspect-[4/5]">
-          <FluidImage src="https://res.cloudinary.com/dfav0sv4d/image/upload/v1766251905/2022-b2_ogppgc.png" alt="logo" fluidIntensity={0.0002} cursorRadius={0.001} className="w-full h-full" />
-        </div>
+        <ParallaxSplash />
+        <ParallaxLogo />
       </div>
       <RoundedCornerContainerAnimation className="p-10 mt-[100vh] w-full min-h-screen relative bottom-0 left-0 bg-white flex flex-col items-center justify-center gap-8">
         <ImageGrid 
-          images={["https://res.cloudinary.com/dfav0sv4d/image/upload/v1766251974/4333_xc3w2y.jpg"]}
+          images={["https://i.ibb.co/bgdpvRJp/image.png"]}
           layout="right"
           aspectRatio="4/5"
         />
         <SocialLinks instagram="https://www.instagram.com/p/DR2fq20jIt6/?img_index=1" artfol="https://artfol.app/a/dJiBr4z" />
          
         <ImageGrid 
-          images={["https://res.cloudinary.com/dfav0sv4d/image/upload/v1766252019/image_esgc4s.png", "https://res.cloudinary.com/dfav0sv4d/image/upload/v1766252019/y14fDcn_jvqxo5.jpg",  "https://res.cloudinary.com/dfav0sv4d/image/upload/v1766252267/602834048_18387621454183247_3381076346339960026_n_qbucem.jpg"]}
+          images={["https://i.ibb.co/4nF8TBHD/image.png", "https://i.ibb.co/r2j7jYVm/y14f-Dcn.jpg",  "https://i.ibb.co/Kx4RBqMt/23-2.png"]}
           layout="left"
           aspectRatio="1"
         />
