@@ -266,14 +266,14 @@ export default function Home() {
       </div>
       <RoundedCornerContainerAnimation className="p-10 mt-[100vh] w-full min-h-screen relative bottom-0 left-0 bg-white flex flex-col items-center justify-center gap-8">
         <ImageGrid 
-          images={["https://i.ibb.co/bgdpvRJp/image.png"]}
+          images={["https://res.cloudinary.com/dfav0sv4d/image/upload/v1766251974/4333_xc3w2y.jpg"]}
           layout="right"
           aspectRatio="4/5"
         />
         <SocialLinks instagram="https://www.instagram.com/p/DR2fq20jIt6/?img_index=1" artfol="https://artfol.app/a/dJiBr4z" />
          
         <ImageGrid 
-          images={["https://i.ibb.co/4nF8TBHD/image.png", "https://i.ibb.co/r2j7jYVm/y14f-Dcn.jpg",  "https://i.ibb.co/Kx4RBqMt/23-2.png"]}
+          images={["https://res.cloudinary.com/dfav0sv4d/image/upload/v1766252019/image_esgc4s.png", "https://res.cloudinary.com/dfav0sv4d/image/upload/v1766252019/y14fDcn_jvqxo5.jpg",  "https://res.cloudinary.com/dfav0sv4d/image/upload/v1766252267/602834048_18387621454183247_3381076346339960026_n_qbucem.jpg"]}
           layout="left"
           aspectRatio="1"
         />
