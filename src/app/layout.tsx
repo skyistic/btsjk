@@ -15,8 +15,8 @@ const marckScript = Marck_Script({
 });
 
 export const metadata: Metadata = {
-  title: "Art by Kezui",
-  description: "Art by Kezui - Your ultimate destination for Kezui's art. Discover exclusive art, videos, and updates from Kezui.",
+  title: "Welcome",
+  description: "",
   keywords: [
     "kezui",
     "art by kezui",
