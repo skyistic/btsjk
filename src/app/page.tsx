@@ -249,6 +249,15 @@ function ParallaxLogo() {
 }
 
 export default function Home() {
+  if(true) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <a href="https://www.instagram.com/03.psd/" target="_blank">
+          <h1 className="text-xl text-blue-600 underline font-bold">Follow Me</h1>
+        </a>
+      </div>
+    )
+  }
   return (
     <div style={{ scrollbarWidth: 'none' }} className="bg-white flex flex-col items-center justify-center min-h-screen scrollbar-hide">
       <div className="fixed w-screen h-[100vh]">
