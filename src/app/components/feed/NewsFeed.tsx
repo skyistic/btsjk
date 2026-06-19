@@ -9,6 +9,7 @@ import {
   type FeedPost,
   type ProfileData,
 } from "@/lib/feed";
+import { trackClick } from "@/lib/analytics";
 import FeedError from "./FeedError";
 import FeedHeader from "./FeedHeader";
 import PostCard from "./PostCard";
@@ -66,6 +67,10 @@ export default function NewsFeed() {
 
     try {
       const moreResponse = await viewMore(NITTER_USERNAME, url);
+      trackClick("feed_load_more", {
+        posts_loaded: moreResponse.posts.length,
+        has_more: Boolean(moreResponse.loadMoreUrl),
+      });
       setPosts((prev) => mergePosts(prev, moreResponse.posts));
       setLoadMoreUrl(moreResponse.loadMoreUrl);
       setReachedEnd(!moreResponse.loadMoreUrl);

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <rect width="180" height="180" rx="40" fill="#0a1a12"/>
+  <rect x="4" y="4" width="172" height="172" rx="36" stroke="#c9a227" stroke-width="6" fill="none"/>
+  <text x="90" y="118" text-anchor="middle" font-family="Georgia, serif" font-size="72" font-weight="700" font-style="italic" fill="#c9a227">JK</text>
+</svg>

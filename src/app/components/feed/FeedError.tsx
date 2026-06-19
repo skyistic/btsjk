@@ -1,3 +1,7 @@
+"use client";
+
+import { trackClick } from "@/lib/analytics";
+
 export default function FeedError({
   message,
   onRetry,
@@ -13,7 +17,10 @@ export default function FeedError({
         {onRetry && (
           <button
             type="button"
-            onClick={onRetry}
+            onClick={() => {
+              trackClick("error_retry_click");
+              onRetry();
+            }}
             className="rounded-lg bg-neutral-800 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
           >
             Try again
@@ -24,6 +31,7 @@ export default function FeedError({
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          onClick={() => trackClick("error_nitter_click")}
         >
           View on Nitter directly
         </a>

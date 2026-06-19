@@ -1,4 +1,7 @@
+"use client";
+
 import type { ProfileData } from "@/lib/nitter-profile";
+import { trackClick } from "@/lib/analytics";
 
 const NITTER_HOST = process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.net";
 const NITTER_BASE = `https://${NITTER_HOST}`;
@@ -23,6 +26,12 @@ export default function FeedHeader({
   const displayName = profile?.displayName ?? "JK";
   const handle = profile?.username ?? username;
 
+  const handleBioClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const link = (e.target as HTMLElement).closest("a");
+    if (!link) return;
+    trackClick("profile_bio_link_click", { href: link.href });
+  };
+
   return (
     <header className="border-b border-neutral-800 bg-neutral-950 px-4 py-6">
       <div className="mx-auto max-w-2xl">
@@ -33,10 +42,11 @@ export default function FeedHeader({
               target="_blank"
               rel="noopener noreferrer"
               className="profile-card-avatar shrink-0"
+              onClick={() => trackClick("profile_avatar_click", { username: handle })}
             >
               <img
                 src={profile.avatarUrl}
-                alt={displayName}
+                alt={`${displayName} — Jung Kook BTS profile`}
                 className="h-20 w-20 rounded-full border border-neutral-700 object-cover"
               />
             </a>
@@ -53,6 +63,7 @@ export default function FeedHeader({
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-neutral-400 hover:underline"
+              onClick={() => trackClick("profile_username_click", { username: handle })}
             >
               @{handle}
             </a>
@@ -61,6 +72,7 @@ export default function FeedHeader({
               <div
                 className="profile-bio mt-3 text-sm leading-relaxed text-neutral-200 [&_a]:text-sky-400 [&_a]:hover:underline [&_p+p]:mt-2"
                 dangerouslySetInnerHTML={{ __html: profile.bioHtml }}
+                onClick={handleBioClick}
               />
             ) : (
               <p className="mt-3 text-sm text-neutral-500">Loading bio…</p>

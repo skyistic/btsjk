@@ -1,4 +1,7 @@
+"use client";
+
 import type { FeedPost } from "@/lib/feed";
+import { trackClick } from "@/lib/analytics";
 
 function formatCount(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -6,8 +9,19 @@ function formatCount(n: number): string {
   return String(n);
 }
 
+function toXUrl(statusUrl: string): string {
+  return statusUrl.replace("nitter.net", "x.com").replace(/#m$/, "");
+}
+
 export default function PostCard({ post }: { post: FeedPost }) {
-  const embedUrl = post.statusUrl ? `${post.statusUrl}#m` : undefined;
+  const xUrl = post.statusUrl ? toXUrl(post.statusUrl) : "";
+
+  const trackPostLink = (action: string) => {
+    trackClick("post_engagement_click", {
+      action,
+      status_url: post.statusUrl,
+    });
+  };
 
   return (
     <article className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
@@ -18,16 +32,26 @@ export default function PostCard({ post }: { post: FeedPost }) {
           }`}
         >
           {post.images.map((src, i) => (
-            <div
+            <a
               key={`${src}-${i}`}
+              href={src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block overflow-hidden bg-neutral-900"
+              onClick={() =>
+                trackClick("post_image_click", {
+                  image_index: i,
+                  status_url: post.statusUrl,
+                })
+              }
             >
               <img
                 src={src}
-                alt=""
+                alt={`Jung Kook BTS post image ${i + 1}`}
                 className="h-full w-full object-cover"
                 loading="lazy"
               />
-            </div>
+            </a>
           ))}
         </div>
       )}
@@ -38,16 +62,42 @@ export default function PostCard({ post }: { post: FeedPost }) {
           dangerouslySetInnerHTML={{ __html: post.html }}
         />
       )}
+
       <div className="flex items-center justify-between border-b border-neutral-800 px-4 pt-1 pb-3">
         <time className="text-xs text-neutral-500">{post.timestamp}</time>
       </div>
 
-
-      <div className="flex gap-5 px-4 py-3 text-xs text-neutral-500">
-        <span className="hover:underline"><a target="_blank" rel="noopener noreferrer" href={`${post.statusUrl.replace('nitter.net', 'x.com')}`}> {formatCount(post.replies)} replies</a></span>
-        <span className="hover:underline"><a target="_blank" rel="noopener noreferrer" href={`${post.statusUrl.replace('nitter.net', 'x.com')}`}>{formatCount(post.retweets)} reposts</a></span>
-        <span className="hover:underline"><a target="_blank" rel="noopener noreferrer" href={`${post.statusUrl.replace('nitter.net', 'x.com')}`}>{formatCount(post.likes)} likes</a></span>
-      </div>
+      {xUrl && (
+        <div className="flex gap-5 px-4 py-3 text-xs text-neutral-500">
+          <a
+            href={xUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+            onClick={() => trackPostLink("replies")}
+          >
+            {formatCount(post.replies)} replies
+          </a>
+          <a
+            href={xUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+            onClick={() => trackPostLink("reposts")}
+          >
+            {formatCount(post.retweets)} reposts
+          </a>
+          <a
+            href={xUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+            onClick={() => trackPostLink("likes")}
+          >
+            {formatCount(post.likes)} likes
+          </a>
+        </div>
+      )}
     </article>
   );
 }
