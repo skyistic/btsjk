@@ -34,10 +34,6 @@ export default function PostCard({ post }: { post: FeedPost }) {
           {post.images.map((src, i) => (
             <a
               key={`${src}-${i}`}
-              href={src}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block overflow-hidden bg-neutral-900"
               onClick={() =>
                 trackClick("post_image_click", {
                   image_index: i,
