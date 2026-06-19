@@ -3,7 +3,7 @@
 import type { ProfileData } from "@/lib/nitter-profile";
 import { trackClick } from "@/lib/analytics";
 
-const NITTER_HOST = process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.net";
+const NITTER_HOST = process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.tiekoetter.com";
 const NITTER_BASE = `https://${NITTER_HOST}`;
 
 function StatItem({ label, value }: { label: string; value: string }) {

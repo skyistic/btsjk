@@ -1,6 +1,13 @@
-import type { ProfileData } from "@/lib/nitter-profile";
+import {
+  fetchProfileFromFxTwitter,
+  parseProfileFromNitterHtml,
+  type ProfileData,
+} from "@/lib/nitter-profile";
 
 export const NITTER_USERNAME = "mnijungkook_bts";
+
+const NITTER_HOST =
+  process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.tiekoetter.com";
 
 export type { ProfileData, ProfileStats } from "@/lib/nitter-profile";
 
@@ -23,6 +30,12 @@ export type FeedResponse = {
   profile: ProfileData | null;
 };
 
+const EMPTY_FEED: FeedResponse = {
+  posts: [],
+  loadMoreUrl: "",
+  profile: null,
+};
+
 function statCount(item: ParentNode, iconClass: string): number {
   const icon = item.querySelector(`.${iconClass}`);
   const statEl = icon?.closest(".tweet-stat");
@@ -38,8 +51,19 @@ function statCount(item: ParentNode, iconClass: string): number {
 
 function toAbsoluteUrl(path: string): string {
   if (path.startsWith("http")) return path;
-  const host = process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.tiekoetter.com";
-  return `https://${host}${path.startsWith("/") ? path : `/${path}`}`;
+  return `https://${NITTER_HOST}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+async function resolveProfileFromHtml(
+  html: string,
+  username: string
+): Promise<ProfileData | null> {
+  const fromHtml = parseProfileFromNitterHtml(html, NITTER_HOST);
+  if (fromHtml?.avatarUrl || fromHtml?.displayName) {
+    return fromHtml;
+  }
+
+  return fetchProfileFromFxTwitter(username);
 }
 
 function parseTimelineHtml(html: string, profile: ProfileData | null = null): FeedResponse {
@@ -94,46 +118,36 @@ export const feedExtract = async (
   username: string,
   search: string | null
 ): Promise<FeedResponse> => {
-  const response = await fetch(
-    `/api/nitter?username=${encodeURIComponent(username)}` +
-      (search ? `&path=search&q=${encodeURIComponent(search)}` : "")
-  );
+  try {
+    const response = await fetch(
+      `/api/nitter?username=${encodeURIComponent(username)}` +
+        (search ? `&path=search&q=${encodeURIComponent(search)}` : "")
+    );
+    const data = await response.json();
+    const profile = await resolveProfileFromHtml(data.html ?? "", username);
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error ?? `Feed request failed (${response.status})`);
+    return parseTimelineHtml(data.html ?? "", profile);
+  } catch (error) {
+    console.error("Error fetching feed:", error);
+    return EMPTY_FEED;
   }
-
-  const data = await response.json();
-  return parseTimelineHtml(data.html, data.profile ?? null);
 };
 
 export const viewMore = async (
   username: string,
   loadMoreUrl: string
 ): Promise<FeedResponse> => {
-  const suffix = loadMoreUrl.startsWith("?")
-    ? `&${loadMoreUrl.slice(1)}`
-    : loadMoreUrl.startsWith("&")
-      ? loadMoreUrl
-      : `&${loadMoreUrl}`;
+  try {
+    const response = await fetch(
+      `/api/nitter?username=${encodeURIComponent(username)}${loadMoreUrl.replace("?f=tweets&", "&f=tweets&")}`
+    );
+    const data = await response.json();
 
-  const normalized = suffix.replace("?f=tweets&", "&f=tweets&");
-
-  const response = await fetch(
-    `/api/nitter?username=${encodeURIComponent(username)}${normalized}`
-  );
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error ?? `Load more failed (${response.status})`);
+    return parseTimelineHtml(data.html ?? "");
+  } catch (error) {
+    console.error("Error fetching feed:", error);
+    return EMPTY_FEED;
   }
-
-  const data = await response.json();
-  return {
-    ...parseTimelineHtml(data.html),
-    profile: null,
-  };
 };
 
 export function mergePosts(

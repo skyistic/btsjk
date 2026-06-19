@@ -10,7 +10,6 @@ import {
   type ProfileData,
 } from "@/lib/feed";
 import { trackClick } from "@/lib/analytics";
-import FeedError from "./FeedError";
 import FeedHeader from "./FeedHeader";
 import PostCard from "./PostCard";
 
@@ -20,7 +19,6 @@ export default function NewsFeed() {
   const [loadMoreUrl, setLoadMoreUrl] = useState("");
   const [fetching, setFetching] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [reachedEnd, setReachedEnd] = useState(false);
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -33,29 +31,18 @@ export default function NewsFeed() {
 
   const fetchFeed = useCallback(async () => {
     setFetching(true);
-    setError(null);
     setReachedEnd(false);
 
-    try {
-      const response = await feedExtract(NITTER_USERNAME, null);
+    const response = await feedExtract(NITTER_USERNAME, null);
 
-      if (response.profile) {
-        setProfile(response.profile);
-      }
-
-      setPosts(response.posts);
-      setLoadMoreUrl(response.loadMoreUrl);
-      setReachedEnd(!response.loadMoreUrl);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unknown error loading feed";
-      setError(message);
-      setPosts([]);
-      setLoadMoreUrl("");
-      setReachedEnd(true);
-    } finally {
-      setFetching(false);
+    if (response.profile) {
+      setProfile(response.profile);
     }
+
+    setPosts(response.posts);
+    setLoadMoreUrl(response.loadMoreUrl);
+    setReachedEnd(!response.loadMoreUrl);
+    setFetching(false);
   }, []);
 
   const loadMore = useCallback(async () => {
@@ -65,25 +52,16 @@ export default function NewsFeed() {
     loadingMoreRef.current = true;
     setLoadingMore(true);
 
-    try {
-      const moreResponse = await viewMore(NITTER_USERNAME, url);
-      trackClick("feed_load_more", {
-        posts_loaded: moreResponse.posts.length,
-        has_more: Boolean(moreResponse.loadMoreUrl),
-      });
-      setPosts((prev) => mergePosts(prev, moreResponse.posts));
-      setLoadMoreUrl(moreResponse.loadMoreUrl);
-      setReachedEnd(!moreResponse.loadMoreUrl);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load more posts";
-      setError(message);
-      setReachedEnd(true);
-      setLoadMoreUrl("");
-    } finally {
-      loadingMoreRef.current = false;
-      setLoadingMore(false);
-    }
+    const moreResponse = await viewMore(NITTER_USERNAME, url);
+    trackClick("feed_load_more", {
+      posts_loaded: moreResponse.posts.length,
+      has_more: Boolean(moreResponse.loadMoreUrl),
+    });
+    setPosts((prev) => mergePosts(prev, moreResponse.posts));
+    setLoadMoreUrl(moreResponse.loadMoreUrl);
+    setReachedEnd(!moreResponse.loadMoreUrl);
+    loadingMoreRef.current = false;
+    setLoadingMore(false);
   }, [fetching]);
 
   useEffect(() => {
@@ -106,14 +84,6 @@ export default function NewsFeed() {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [loadMoreUrl, reachedEnd, loadMore, posts.length]);
-
-  if (error && posts.length === 0) {
-    return (
-      <div className="min-h-screen bg-black">
-        <FeedError message={error} onRetry={fetchFeed} />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-white">

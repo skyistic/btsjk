@@ -81,7 +81,7 @@ export function parseProfileFromNitterHtml(
   };
 }
 
-async function fetchProfileFromFxTwitter(
+export async function fetchProfileFromFxTwitter(
   username: string,
   statusId?: string
 ): Promise<ProfileData | null> {
