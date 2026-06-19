@@ -7,11 +7,7 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx,mdx}', // if using src directory
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        'marck-script': ['var(--font-marck-script)', 'cursive'],
-      },
-    },
+    extend: {},
   },
   plugins: [],
 }
