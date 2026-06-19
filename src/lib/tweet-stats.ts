@@ -98,11 +98,8 @@ async function fetchStatsFromFxTwitter(
 export async function fetchTweetStats(
   username: string,
   statusId: string,
-  host = process.env.NITTER_HOST ?? "nitter.net"
+  _host = process.env.NITTER_HOST ?? "nitter.net"
 ): Promise<TweetStats> {
-  const fromNitter = await fetchStatsFromNitter(host, username, statusId);
-  if (fromNitter) return fromNitter;
-
   const fromFx = await fetchStatsFromFxTwitter(username, statusId);
   if (fromFx) return fromFx;
 

@@ -47,7 +47,7 @@ export async function rssToTimelineHtml(
   if (!response.ok) return null;
 
   const xml = await response.text();
-  if (!xml.includes("<rss")) return null;
+  if (!xml.includes("<rss") || xml.includes("anubis_challenge")) return null;
 
   const rawItems: Array<{
     statusId: string;
@@ -94,4 +94,23 @@ export async function rssToTimelineHtml(
   );
 
   return `<!DOCTYPE html><html><body><div class="timeline">${items.join("")}</div></body></html>`;
+}
+
+const RSS_HOST_FALLBACKS = ["nitter.net", "nitter.tiekoetter.com"];
+
+export async function rssToTimelineHtmlWithFallback(
+  preferredHost: string,
+  username: string
+): Promise<string | null> {
+  const hosts = [
+    preferredHost,
+    ...RSS_HOST_FALLBACKS.filter((h) => h !== preferredHost),
+  ];
+
+  for (const host of hosts) {
+    const html = await rssToTimelineHtml(host, username);
+    if (html) return html;
+  }
+
+  return null;
 }

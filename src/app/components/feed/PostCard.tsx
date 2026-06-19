@@ -70,7 +70,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
       {xUrl && (
         <div className="flex gap-5 px-4 py-3 text-xs text-neutral-500">
           <a
-            href={xUrl}
+            href={xUrl.replace('https://nitter.tiekoetter.com/', 'https://x.com/')}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
@@ -79,7 +79,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
             {formatCount(post.replies)} replies
           </a>
           <a
-            href={xUrl}
+            href={xUrl.replace('https://nitter.tiekoetter.com/', 'https://x.com/')}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
@@ -88,7 +88,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
             {formatCount(post.retweets)} reposts
           </a>
           <a
-            href={xUrl}
+            href={xUrl.replace('https://nitter.tiekoetter.com/', 'https://x.com/')}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"

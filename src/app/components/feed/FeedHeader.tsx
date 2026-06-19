@@ -58,15 +58,7 @@ export default function FeedHeader({
 
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold text-white">{displayName}</h1>
-            <a
-              href={profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-neutral-400 hover:underline"
-              onClick={() => trackClick("profile_username_click", { username: handle })}
-            >
-              @{handle}
-            </a>
+            <span className="text-sm text-neutral-400">@{handle}</span>
 
             {profile?.bioHtml ? (
               <div

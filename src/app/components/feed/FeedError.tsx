@@ -26,15 +26,6 @@ export default function FeedError({
             Try again
           </button>
         )}
-        <a
-          href="https://nitter.net/mnijungkook_bts"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-          onClick={() => trackClick("error_nitter_click")}
-        >
-          View on Nitter directly
-        </a>
       </div>
     </div>
   );

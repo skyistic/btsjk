@@ -1,3 +1,5 @@
+import { isBotChallengePage } from "@/lib/nitter-html";
+
 const FETCH_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -184,8 +186,12 @@ export async function resolveProfile(
   host: string,
   username: string
 ): Promise<ProfileData | null> {
-  const fromPage = parseProfileFromNitterHtml(html, host);
-  if (fromPage?.avatarUrl || fromPage?.displayName) return fromPage;
+  let fromPage: ProfileData | null = null;
+
+  if (!isBotChallengePage(html)) {
+    fromPage = parseProfileFromNitterHtml(html, host);
+    if (fromPage?.avatarUrl || fromPage?.displayName) return fromPage;
+  }
 
   try {
     const response = await fetch(`https://${host}/${username}`, {
@@ -193,7 +199,7 @@ export async function resolveProfile(
       cache: "no-store",
     });
     const profileHtml = await response.text();
-    if (profileHtml.length > 200) {
+    if (profileHtml.length > 200 && !isBotChallengePage(profileHtml)) {
       const fromProfilePage = parseProfileFromNitterHtml(profileHtml, host);
       if (fromProfilePage) return fromProfilePage;
     }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rssToTimelineHtml } from "@/lib/nitter-rss-fallback";
+import { rssToTimelineHtmlWithFallback } from "@/lib/nitter-rss-fallback";
 import { resolveProfile } from "@/lib/nitter-profile";
+import { isBotChallengePage, isUsableNitterHtml } from "@/lib/nitter-html";
 
-const DEFAULT_HOST = process.env.NITTER_HOST ?? "nitter.net";
+const NITTER_BASE = process.env.NITTER_HOST ?? "https://nitter.tiekoetter.com";
 
 const FETCH_HEADERS = {
   "User-Agent":
@@ -11,35 +12,120 @@ const FETCH_HEADERS = {
   "Accept-Language": "en-US,en;q=0.9",
 };
 
-function hostUrl(host: string, path: string): string {
-  return `https://${host}${path}`;
+const RESERVED_PARAMS = new Set([
+  "username",
+  "id",
+  "path",
+  "sort",
+  "q",
+  "f",
+  "since",
+  "until",
+  "near",
+  "cursor",
+]);
+
+type NitterQuery = {
+  username: string | null;
+  id: string | null;
+  path: string | null;
+  sort: string | null;
+  q: string | null;
+  f: string | null;
+  since: string | null;
+  until: string | null;
+  near: string | null;
+  cursor: string | null;
+};
+
+function getBaseUrl(): string {
+  return NITTER_BASE.replace(/\/$/, "");
+}
+
+function parseQuery(params: URLSearchParams): NitterQuery {
+  return {
+    username: params.get("username"),
+    id: params.get("id"),
+    path: params.get("path"),
+    sort: params.get("sort"),
+    q: params.get("q"),
+    f: params.get("f"),
+    since: params.get("since"),
+    until: params.get("until"),
+    near: params.get("near"),
+    cursor: params.get("cursor"),
+  };
+}
+
+function buildNitterUrl(
+  query: NitterQuery,
+  requestParams: URLSearchParams
+): string {
+  const base = getBaseUrl();
+  const { username, id, path, sort, q, f, since, until, near, cursor } = query;
+  const isSearch = path === "search" || Boolean(q);
+
+  let url: string;
+
+  if (id && username) {
+    url = `${base}/${username}/status/${id}`;
+  } else if (isSearch) {
+    url = username ? `${base}/${username}/search` : `${base}/search`;
+  } else if (username) {
+    url = `${base}/${username}`;
+  } else {
+    url = `${base}/search`;
+  }
+
+  const searchParams = new URLSearchParams();
+
+  if (q) searchParams.set("q", q);
+  if (f) searchParams.set("f", f);
+  if (since) searchParams.set("since", since);
+  if (until) searchParams.set("until", until);
+  if (near) searchParams.set("near", near);
+  if (cursor) searchParams.set("cursor", cursor);
+
+  requestParams.forEach((value, key) => {
+    if (!RESERVED_PARAMS.has(key) && !searchParams.has(key)) {
+      searchParams.set(key, value);
+    }
+  });
+
+  if (sort && !id && path !== "search") {
+    searchParams.set("sort", sort);
+  }
+
+  const queryString = searchParams.toString();
+  if (queryString) {
+    url += url.includes("?") ? "&" : "?";
+    url += queryString;
+  }
+
+  return url;
 }
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const username = params.get("username");
+  const query = parseQuery(params);
+  const url = buildNitterUrl(query, params);
+  const host = new URL(url).host;
 
-  if (!username) {
-    return NextResponse.json({ error: "username is required" }, { status: 400 });
-  }
-
-  const host = DEFAULT_HOST;
-  const path = params.get("path");
-  let url: string;
-
-  if (path === "search") {
-    const q = params.get("q") ?? "";
-    url = hostUrl(host, `/search?f=tweets&q=${encodeURIComponent(q)}`);
-  } else {
-    const query = new URLSearchParams();
-    params.forEach((value, key) => {
-      if (key !== "username" && key !== "path") {
-        query.set(key, value);
-      }
-    });
-    const qs = query.toString();
-    url = hostUrl(host, `/${username}${qs ? `?${qs}` : ""}`);
-  }
+  const metadata = {
+    username: query.username,
+    id: query.id,
+    path: query.path,
+    sort: query.sort,
+    search: {
+      q: query.q,
+      f: query.f,
+      since: query.since,
+      until: query.until,
+      near: query.near,
+      cursor: query.cursor,
+    },
+    url,
+  };
 
   try {
     const response = await fetch(url, {
@@ -48,42 +134,58 @@ export async function GET(request: NextRequest) {
     });
 
     let html = response.ok ? await response.text() : "";
-    const isPaginated = params.has("cursor") || params.has("max_id");
+    const isPaginated = Boolean(query.cursor || params.has("max_id"));
 
-    if ((!html || html.length < 100) && !isPaginated) {
-      const rssHtml = await rssToTimelineHtml(host, username);
+    if (!isUsableNitterHtml(html) && !isPaginated && query.username) {
+      const rssHtml = await rssToTimelineHtmlWithFallback(host, query.username);
       if (rssHtml) {
         html = rssHtml;
-      } else if (!response.ok) {
-        return NextResponse.json(
-          { error: `Nitter returned ${response.status}` },
-          { status: response.status }
-        );
-      } else if (isPaginated) {
-        return NextResponse.json(
-          { error: "No more posts available" },
-          { status: 404 }
-        );
-      } else {
-        return NextResponse.json(
-          { error: "Empty response from Nitter" },
-          { status: 502 }
-        );
       }
     }
 
-    const profile = await resolveProfile(html, host, username);
+    if (!isUsableNitterHtml(html)) {
+      const status = response.ok ? 502 : response.status;
+      const error = !html || html.length < 100
+        ? "Empty response from Nitter"
+        : isBotChallengePage(html)
+          ? "Nitter bot protection blocked the request"
+          : "No timeline content in Nitter response";
 
-    return NextResponse.json({ html, profile });
-  } catch {
-    const rssHtml = await rssToTimelineHtml(host, username).catch(() => null);
-    if (rssHtml) {
-      const profile = await resolveProfile(rssHtml, host, username);
-      return NextResponse.json({ html: rssHtml, profile });
+      return NextResponse.json({ error, originalUrl: url, metadata }, { status });
+    }
+
+    const profile = query.username
+      ? await resolveProfile(html, host, query.username)
+      : null;
+
+    return NextResponse.json({
+      html,
+      originalUrl: url,
+      metadata,
+      profile,
+    });
+  } catch (error) {
+    console.error("Error fetching from nitter:", error);
+
+    if (query.username) {
+      try {
+        const rssHtml = await rssToTimelineHtmlWithFallback(host, query.username);
+        if (rssHtml) {
+          const profile = await resolveProfile(rssHtml, host, query.username);
+          return NextResponse.json({
+            html: rssHtml,
+            originalUrl: url,
+            metadata,
+            profile,
+          });
+        }
+      } catch {
+        // fall through
+      }
     }
 
     return NextResponse.json(
-      { error: "Failed to reach Nitter" },
+      { error: "Failed to fetch content", originalUrl: url, metadata },
       { status: 500 }
     );
   }

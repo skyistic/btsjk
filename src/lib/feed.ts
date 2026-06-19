@@ -38,7 +38,7 @@ function statCount(item: ParentNode, iconClass: string): number {
 
 function toAbsoluteUrl(path: string): string {
   if (path.startsWith("http")) return path;
-  const host = process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.net";
+  const host = process.env.NEXT_PUBLIC_NITTER_HOST ?? "nitter.tiekoetter.com";
   return `https://${host}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
